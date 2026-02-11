@@ -1,0 +1,84 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<unistd.h>
+#include<sys/stat.h>
+#include<string.h>
+#include<sys/socket.h>
+#include<sys/types.h>
+#include<netinet/in.h>
+#include<arpa/inet.h>
+
+int isPalindrome(int n) {
+    
+    int temp = n,digit,rev=0;
+
+    while (n > 0) {
+        digit = n % 10;
+        rev = rev * 10 + digit;
+        n = n / 10;
+    }
+
+    if (rev == temp)
+        printf("Palindrome\n");
+    else
+        printf("Not a Palindrome\n");
+
+    return 1;
+}
+
+int main(){
+    struct sockaddr_in client,server;
+
+    int s,n,sock;
+    char b1[10]="",b2[10]="hello";
+    if((s=socket(AF_INET,SOCK_STREAM,0))==-1)
+    {
+        printf("socket error");
+        exit(0);
+
+    }
+
+    server.sin_family=AF_INET;
+    server.sin_port=2000;
+
+    server.sin_addr.s_addr=inet_addr("127.0.0.1");
+    if((bind(s,(struct sockaddr*)&server,sizeof server))<0)
+    {
+        printf("bind error");
+        exit(0);
+    }
+
+    listen(s,1);
+
+    n=sizeof client;
+
+    sock=accept(s,(struct sockaddr*)&client,&n);
+    for(;;)
+    {
+        recv(sock,b1,sizeof b1,0);
+         if(strcmp(b1,"pali")==0)
+      {
+             printf("requested palindrome function");
+             char req[]="enter a numner: ";
+             send(sock,req,sizeof req,0);
+            recv(sock,b1,sizeof b1,0);
+             int num=(int)b1[0];
+             isPalindrome(num);
+        }
+        if(strcmp(b1,"end")==0)
+        {
+             break;
+        }
+        printf("\nclient: %s",b1);
+        
+        printf("\nserver:");
+        fgets(b2,sizeof b2,stdin);
+        send(sock,b2,sizeof b2,0);
+        if(strcmp(b2,"end")==0)
+        {
+            break;
+        }
+    }
+    close(sock);
+    close(s);
+}
